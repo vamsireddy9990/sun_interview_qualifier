@@ -25,3 +25,33 @@ def extract_text_from_pdf(pdf_file):
 
 # Test Strategy:
 Test with various PDF files including single and multi-page documents. Verify text extraction works correctly. Test with invalid file types to ensure proper error handling.
+
+st.header("Job Description Input")
+
+job_desc_text = st.text_area("Paste or type the job description here")
+
+job_desc_file = st.file_uploader(
+    "Or upload a job description PDF",
+    type=["pdf"],
+    key="job_desc_pdf"
+)
+
+job_desc_pdf_text = ""
+try:
+    if job_desc_file is not None:
+        reader = PyPDF2.PdfReader(job_desc_file)
+        for page in reader.pages:
+            job_desc_pdf_text += page.extract_text() or ""
+except Exception as e:
+    st.error(f"Error reading job description PDF: {e}")
+
+if job_desc_file is not None and job_desc_pdf_text.strip():
+    job_description = job_desc_pdf_text
+elif job_desc_text.strip():
+    job_description = job_desc_text
+else:
+    job_description = ""
+
+if job_description:
+    st.subheader("Job Description Preview")
+    st.write(job_description)
