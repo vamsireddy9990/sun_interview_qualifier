@@ -1,0 +1,39 @@
+# Task ID: 6
+# Title: Implement Results Table Display
+# Status: pending
+# Dependencies: 5
+# Priority: high
+# Description: Create a sortable table to display analysis results with all required columns.
+# Details:
+1. Create a function to display results in a table format:
+```python
+def display_results_table(results):
+    if not results:
+        st.info("No analysis results to display.")
+        return
+    
+    # Sort results by rank (highest first)
+    sorted_results = sorted(results, key=lambda x: x.get('rank', 0), reverse=True)
+    
+    # Create a DataFrame for display
+    import pandas as pd
+    df = pd.DataFrame([
+        {
+            'S.No': i+1,
+            'Resume Name': r.get('resume_name', 'Unknown'),
+            'Candidate Name': r.get('candidate_name', 'Unknown'),
+            'Analysis': r.get('analysis', 'No analysis available'),
+            'Rank': r.get('rank', 0)
+        } for i, r in enumerate(sorted_results)
+    ])
+    
+    # Display the table
+    st.dataframe(df, use_container_width=True)
+```
+2. Implement sorting functionality (default by rank)
+3. Add conditional formatting to highlight top candidates
+4. Ensure table is responsive and handles long text in the Analysis column
+5. Add option to download results as CSV
+
+# Test Strategy:
+Test table display with various result sets. Verify sorting works correctly. Test with long analysis text to ensure proper display. Test CSV download functionality.

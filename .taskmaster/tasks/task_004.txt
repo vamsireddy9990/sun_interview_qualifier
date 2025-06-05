@@ -1,0 +1,60 @@
+# Task ID: 4
+# Title: Implement Anthropic API Integration
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Set up the connection to the Anthropic API and create functions to analyze resumes against job descriptions.
+# Details:
+1. Set up Anthropic API client using environment variables for authentication:
+```python
+from anthropic import Anthropic
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+anthropic = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+```
+2. Create a function to analyze a resume against a job description:
+```python
+def analyze_resume(resume_text, job_description):
+    prompt = f"""I need you to analyze this resume against a job description. 
+    
+Resume:
+{resume_text}
+
+Job Description:
+{job_description}
+
+Please provide:
+1. The candidate's full name
+2. A brief analysis of how well the candidate fits the job requirements
+3. A numerical rank from 1-10 (10 being the best fit)
+
+Format your response as a JSON object with keys: 'candidate_name', 'analysis', and 'rank'."""
+    
+    try:
+        response = anthropic.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=1000,
+            temperature=0,
+            system="You are an expert HR recruiter assistant that analyzes resumes against job descriptions.",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        
+        # Extract and parse JSON from response
+        import json
+        import re
+        
+        # Find JSON in the response
+        json_match = re.search(r'\{.*\}', response.content[0].text, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group(0))
+        else:
+            return {"error": "Could not parse response"}
+    except Exception as e:
+        return {"error": str(e)}
+```
+3. Implement rate limiting and error handling for API calls
+
+# Test Strategy:
+Test API integration with sample resumes and job descriptions. Verify JSON parsing works correctly. Test error handling by simulating API failures. Verify rate limiting prevents excessive API calls.

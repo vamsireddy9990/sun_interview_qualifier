@@ -1,0 +1,27 @@
+# Task ID: 2
+# Title: Implement Resume Upload Functionality
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Create the UI component for uploading multiple PDF resumes and extract text from them.
+# Details:
+1. Create a file uploader component in Streamlit that accepts multiple PDF files
+2. Add validation to ensure only PDF files are accepted
+3. Implement PDF text extraction using PyPDF2:
+```python
+def extract_text_from_pdf(pdf_file):
+    text = ""
+    try:
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        for page in pdf_reader.pages:
+            text += page.extract_text()
+        return text
+    except Exception as e:
+        st.error(f"Error extracting text from {pdf_file.name}: {str(e)}")
+        return None
+```
+4. Store extracted text in a session state variable along with file names
+5. Display confirmation message showing number of resumes successfully uploaded
+
+# Test Strategy:
+Test with various PDF files including single and multi-page documents. Verify text extraction works correctly. Test with invalid file types to ensure proper error handling.

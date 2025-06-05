@@ -1,0 +1,21 @@
+# Task ID: 1
+# Title: Setup Project Structure and Environment
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Initialize the Streamlit project structure, set up virtual environment, and install required dependencies.
+# Details:
+1. Create a new directory for the project
+2. Initialize a virtual environment: `python -m venv venv`
+3. Activate the virtual environment
+4. Install required packages: `pip install streamlit pypdf2 anthropic python-dotenv`
+5. Create a requirements.txt file with all dependencies
+6. Set up .env file for API keys (add to .gitignore)
+7. Create basic project structure with app.py as the main entry point
+8. Initialize git repository with appropriate .gitignore
+
+# Test Strategy:
+Verify all dependencies install correctly and the basic Streamlit app runs without errors. Test environment variable loading functionality.
+
+mkdir sun_interview_qualifier
+cd sun_interview_qualifier

@@ -1,0 +1,55 @@
+
+
+# AI-Powered Resume Analyzer for HR Recruiters
+
+## 1\. Introduction
+
+This PRD outlines the requirements for an AI-powered tool to help HR recruiters efficiently analyze resumes against job descriptions, streamlining the initial screening process.
+
+## 2\. Product overview
+
+The **AI-Powered Resume Analyzer** is a Streamlit web app. It allows recruiters to upload PDF resumes and provide a job description (text or PDF). Using the **Anthropic API**, it analyzes candidate fit, producing a ranked, tabular output.
+
+## 3\. Goals and objectives
+
+  * **Boost Screening Efficiency:** Reduce manual resume review time.
+  * **Improve Accuracy:** Enhance consistency in candidate evaluation.
+  * **Provide Quick Insights:** Offer concise analysis and ranking.
+
+## 4\. Target audience
+
+**HR recruiters** are the primary users.
+
+## 5\. Features and requirements
+
+  * **Resume Upload:** Supports multi-file PDF resume uploads; extracts text.
+  * **Job Description Input:** Allows pasting text or uploading PDF; extracts text.
+  * **Analysis Trigger:** "Analyze Resumes" button initiates AI process with loading indicator.
+  * **Anthropic API Integration:** Calls Anthropic API for resume-JD comparison, requesting analysis and rank.
+  * **Results Table:** Displays results in a table with **S.No**, **Resume Name**, **Candidate Name**, **Analysis** (fit/shortcomings), and **Rank** (1=best). Table is sortable by rank.
+  * **Error Handling:** Manages invalid file types, text extraction failures, and API errors.
+
+## 6\. User stories and acceptance criteria
+
+  * **ST-101: Upload resumes & JD.**
+      * **Description:** As a recruiter, I want to upload resumes and provide a JD (text/PDF) for analysis.
+      * **Acceptance Criteria:** Files uploaded, text extracted, ready for processing.
+  * **ST-102: Analyze and view results.**
+      * **Description:** As a recruiter, I want to click "Analyze" and see a ranked table of candidate suitability.
+      * **Acceptance Criteria:** Analysis runs, table displays all required columns sorted by rank.
+  * **ST-103: Handle errors.**
+      * **Description:** As a recruiter, if there's an input or system error, I want clear feedback.
+      * **Acceptance Criteria:** Invalid files blocked, extraction failures noted, API errors displayed.
+
+## 7\. Technical requirements / stack
+
+  * **Frontend:** Streamlit (Python)
+  * **AI/NLP:** Anthropic API (Claude 3 Opus)
+  * **PDF Processing:** `PyPDF2`
+  * **Security:** API keys via environment variables
+
+## 8\. Design and user interface
+
+  * **Layout:** Clean and intuitive, with clear sections for input and output.
+  * **Feedback:** Provides visual loading indicators and clear error messages.
+  * **Output:** Readable table with essential candidate analysis and rank.

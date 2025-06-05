@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+echo "# Sun Interview Qualifier" > README.md
+
+venv/
+__pycache__/
+*.pyc
+
+import streamlit as st
+from PyPDF2 import PdfReader
+
+
+
+

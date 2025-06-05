@@ -1,0 +1,151 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Setup Project Structure and Environment",
+      "description": "Initialize the Streamlit project structure, set up virtual environment, and install required dependencies.",
+      "details": "1. Create a new directory for the project\n2. Initialize a virtual environment: `python -m venv venv`\n3. Activate the virtual environment\n4. Install required packages: `pip install streamlit pypdf2 anthropic python-dotenv`\n5. Create a requirements.txt file with all dependencies\n6. Set up .env file for API keys (add to .gitignore)\n7. Create basic project structure with app.py as the main entry point\n8. Initialize git repository with appropriate .gitignore",
+      "testStrategy": "Verify all dependencies install correctly and the basic Streamlit app runs without errors. Test environment variable loading functionality.",
+      "priority": "high",
+      "dependencies": [],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 2,
+      "title": "Implement Resume Upload Functionality",
+      "description": "Create the UI component for uploading multiple PDF resumes and extract text from them.",
+      "details": "1. Create a file uploader component in Streamlit that accepts multiple PDF files\n2. Add validation to ensure only PDF files are accepted\n3. Implement PDF text extraction using PyPDF2:\n```python\ndef extract_text_from_pdf(pdf_file):\n    text = \"\"\n    try:\n        pdf_reader = PyPDF2.PdfReader(pdf_file)\n        for page in pdf_reader.pages:\n            text += page.extract_text()\n        return text\n    except Exception as e:\n        st.error(f\"Error extracting text from {pdf_file.name}: {str(e)}\")\n        return None\n```\n4. Store extracted text in a session state variable along with file names\n5. Display confirmation message showing number of resumes successfully uploaded",
+      "testStrategy": "Test with various PDF files including single and multi-page documents. Verify text extraction works correctly. Test with invalid file types to ensure proper error handling.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 3,
+      "title": "Implement Job Description Input",
+      "description": "Create UI components for inputting job descriptions either as text or by uploading a PDF file.",
+      "details": "1. Create a tabbed interface with two options: 'Paste Text' and 'Upload PDF'\n2. For 'Paste Text' tab, add a text area where users can paste the job description\n3. For 'Upload PDF' tab, add a file uploader that accepts a single PDF file\n4. Reuse the PDF text extraction function from Task 2 for the uploaded JD PDF\n5. Store the extracted/entered job description in a session state variable\n6. Add validation to ensure a job description is provided before analysis can begin\n7. Display a preview of the extracted/entered job description text",
+      "testStrategy": "Test both input methods. Verify text area accepts and stores large text inputs. Test PDF upload with various job description documents. Ensure validation works correctly when no job description is provided.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 4,
+      "title": "Implement Anthropic API Integration",
+      "description": "Set up the connection to the Anthropic API and create functions to analyze resumes against job descriptions.",
+      "details": "1. Set up Anthropic API client using environment variables for authentication:\n```python\nfrom anthropic import Anthropic\nimport os\nfrom dotenv import load_dotenv\n\nload_dotenv()\nanthropic = Anthropic(api_key=os.environ.get(\"ANTHROPIC_API_KEY\"))\n```\n2. Create a function to analyze a resume against a job description:\n```python\ndef analyze_resume(resume_text, job_description):\n    prompt = f\"\"\"I need you to analyze this resume against a job description. \n    \nResume:\n{resume_text}\n\nJob Description:\n{job_description}\n\nPlease provide:\n1. The candidate's full name\n2. A brief analysis of how well the candidate fits the job requirements\n3. A numerical rank from 1-10 (10 being the best fit)\n\nFormat your response as a JSON object with keys: 'candidate_name', 'analysis', and 'rank'.\"\"\"\n    \n    try:\n        response = anthropic.messages.create(\n            model=\"claude-3-opus-20240229\",\n            max_tokens=1000,\n            temperature=0,\n            system=\"You are an expert HR recruiter assistant that analyzes resumes against job descriptions.\",\n            messages=[{\"role\": \"user\", \"content\": prompt}]\n        )\n        \n        # Extract and parse JSON from response\n        import json\n        import re\n        \n        # Find JSON in the response\n        json_match = re.search(r'\\{.*\\}', response.content[0].text, re.DOTALL)\n        if json_match:\n            return json.loads(json_match.group(0))\n        else:\n            return {\"error\": \"Could not parse response\"}\n    except Exception as e:\n        return {\"error\": str(e)}\n```\n3. Implement rate limiting and error handling for API calls",
+      "testStrategy": "Test API integration with sample resumes and job descriptions. Verify JSON parsing works correctly. Test error handling by simulating API failures. Verify rate limiting prevents excessive API calls.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 5,
+      "title": "Implement Analysis Trigger and Loading Indicator",
+      "description": "Create the 'Analyze Resumes' button and implement a loading indicator during the analysis process.",
+      "details": "1. Add an 'Analyze Resumes' button that is enabled only when both resumes and job description are provided\n2. Implement a loading spinner or progress bar during analysis:\n```python\nif st.button('Analyze Resumes', disabled=not (resumes_uploaded and job_description)):\n    with st.spinner('Analyzing resumes... This may take a minute.'):\n        results = []\n        for resume_file, resume_text in zip(uploaded_resumes, extracted_texts):\n            result = analyze_resume(resume_text, job_description)\n            result['resume_name'] = resume_file.name\n            results.append(result)\n        \n        # Store results in session state\n        st.session_state.analysis_results = results\n```\n3. Add a progress bar to show advancement through multiple resumes\n4. Implement timeout handling for long-running analyses\n5. Add cancellation option for users",
+      "testStrategy": "Test the button activation logic with various input states. Verify loading indicators display correctly during analysis. Test with multiple resumes to ensure progress tracking works. Test cancellation functionality.",
+      "priority": "medium",
+      "dependencies": [
+        2,
+        3,
+        4
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 6,
+      "title": "Implement Results Table Display",
+      "description": "Create a sortable table to display analysis results with all required columns.",
+      "details": "1. Create a function to display results in a table format:\n```python\ndef display_results_table(results):\n    if not results:\n        st.info(\"No analysis results to display.\")\n        return\n    \n    # Sort results by rank (highest first)\n    sorted_results = sorted(results, key=lambda x: x.get('rank', 0), reverse=True)\n    \n    # Create a DataFrame for display\n    import pandas as pd\n    df = pd.DataFrame([\n        {\n            'S.No': i+1,\n            'Resume Name': r.get('resume_name', 'Unknown'),\n            'Candidate Name': r.get('candidate_name', 'Unknown'),\n            'Analysis': r.get('analysis', 'No analysis available'),\n            'Rank': r.get('rank', 0)\n        } for i, r in enumerate(sorted_results)\n    ])\n    \n    # Display the table\n    st.dataframe(df, use_container_width=True)\n```\n2. Implement sorting functionality (default by rank)\n3. Add conditional formatting to highlight top candidates\n4. Ensure table is responsive and handles long text in the Analysis column\n5. Add option to download results as CSV",
+      "testStrategy": "Test table display with various result sets. Verify sorting works correctly. Test with long analysis text to ensure proper display. Test CSV download functionality.",
+      "priority": "high",
+      "dependencies": [
+        5
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 7,
+      "title": "Implement Comprehensive Error Handling",
+      "description": "Add robust error handling for all possible failure points in the application.",
+      "details": "1. Implement file validation:\n```python\ndef is_valid_pdf(file):\n    if file.type != 'application/pdf':\n        return False\n    return True\n```\n2. Add error handling for PDF text extraction failures\n3. Implement API error handling with user-friendly messages\n4. Add validation for empty or invalid job descriptions\n5. Create a centralized error display component\n6. Implement logging for debugging purposes\n7. Add retry mechanisms for transient failures\n8. Create helpful error messages with suggested actions for users",
+      "testStrategy": "Test with invalid file types, corrupted PDFs, and empty inputs. Simulate API failures and verify error messages. Test retry mechanisms with temporary network issues. Verify logs capture relevant error information.",
+      "priority": "medium",
+      "dependencies": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 8,
+      "title": "Implement UI Layout and Styling",
+      "description": "Design and implement a clean, intuitive user interface following the PRD specifications.",
+      "details": "1. Create a header with app title and brief description\n2. Organize the UI into clear sections:\n   - Input section (resume upload and job description)\n   - Analysis controls\n   - Results section\n3. Use Streamlit's columns feature for layout organization\n4. Add custom CSS for styling improvements:\n```python\ndef apply_custom_css():\n    st.markdown(\"\"\"\n    <style>\n    .stApp {\n        max-width: 1200px;\n        margin: 0 auto;\n    }\n    .result-table {\n        margin-top: 2rem;\n    }\n    </style>\n    \"\"\", unsafe_allow_html=True)\n```\n5. Add tooltips and help text for better user guidance\n6. Ensure responsive design for different screen sizes\n7. Use consistent color scheme and typography",
+      "testStrategy": "Test UI on different screen sizes and browsers. Verify layout is intuitive and sections are clearly separated. Get feedback from potential users on usability.",
+      "priority": "medium",
+      "dependencies": [
+        2,
+        3,
+        5,
+        6
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 9,
+      "title": "Implement Session Management",
+      "description": "Add functionality to manage user session state and preserve data between interactions.",
+      "details": "1. Initialize session state variables at app startup:\n```python\ndef initialize_session_state():\n    if 'uploaded_resumes' not in st.session_state:\n        st.session_state.uploaded_resumes = []\n    if 'job_description' not in st.session_state:\n        st.session_state.job_description = \"\"\n    if 'analysis_results' not in st.session_state:\n        st.session_state.analysis_results = []\n```\n2. Implement functions to update session state\n3. Add ability to clear current session data\n4. Preserve analysis results between page refreshes\n5. Add session timeout handling\n6. Implement state management for multi-step workflow",
+      "testStrategy": "Test session persistence across page refreshes. Verify state is properly maintained during user interactions. Test clear functionality. Verify session timeout behavior.",
+      "priority": "low",
+      "dependencies": [
+        2,
+        3,
+        6
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 10,
+      "title": "Implement Final Testing and Documentation",
+      "description": "Perform comprehensive testing and create documentation for the application.",
+      "details": "1. Create a test plan covering all functionality:\n   - Resume upload and text extraction\n   - Job description input\n   - Analysis process\n   - Results display\n   - Error handling\n2. Perform end-to-end testing with real resumes and job descriptions\n3. Create user documentation:\n   - Installation instructions\n   - Usage guide with screenshots\n   - Troubleshooting section\n4. Add inline code documentation and comments\n5. Create a README.md file with project overview\n6. Document API usage and rate limits\n7. Add sample resumes and job descriptions for testing",
+      "testStrategy": "Conduct user acceptance testing with HR professionals. Verify documentation is clear and comprehensive. Test installation process using documentation.",
+      "priority": "medium",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "status": "pending",
+      "subtasks": []
+    }
+  ]
+}

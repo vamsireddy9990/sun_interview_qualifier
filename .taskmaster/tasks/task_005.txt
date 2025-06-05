@@ -1,0 +1,27 @@
+# Task ID: 5
+# Title: Implement Analysis Trigger and Loading Indicator
+# Status: pending
+# Dependencies: 2, 3, 4
+# Priority: medium
+# Description: Create the 'Analyze Resumes' button and implement a loading indicator during the analysis process.
+# Details:
+1. Add an 'Analyze Resumes' button that is enabled only when both resumes and job description are provided
+2. Implement a loading spinner or progress bar during analysis:
+```python
+if st.button('Analyze Resumes', disabled=not (resumes_uploaded and job_description)):
+    with st.spinner('Analyzing resumes... This may take a minute.'):
+        results = []
+        for resume_file, resume_text in zip(uploaded_resumes, extracted_texts):
+            result = analyze_resume(resume_text, job_description)
+            result['resume_name'] = resume_file.name
+            results.append(result)
+        
+        # Store results in session state
+        st.session_state.analysis_results = results
+```
+3. Add a progress bar to show advancement through multiple resumes
+4. Implement timeout handling for long-running analyses
+5. Add cancellation option for users
+
+# Test Strategy:
+Test the button activation logic with various input states. Verify loading indicators display correctly during analysis. Test with multiple resumes to ensure progress tracking works. Test cancellation functionality.

@@ -1,0 +1,17 @@
+# Task ID: 3
+# Title: Implement Job Description Input
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Create UI components for inputting job descriptions either as text or by uploading a PDF file.
+# Details:
+1. Create a tabbed interface with two options: 'Paste Text' and 'Upload PDF'
+2. For 'Paste Text' tab, add a text area where users can paste the job description
+3. For 'Upload PDF' tab, add a file uploader that accepts a single PDF file
+4. Reuse the PDF text extraction function from Task 2 for the uploaded JD PDF
+5. Store the extracted/entered job description in a session state variable
+6. Add validation to ensure a job description is provided before analysis can begin
+7. Display a preview of the extracted/entered job description text
+
+# Test Strategy:
+Test both input methods. Verify text area accepts and stores large text inputs. Test PDF upload with various job description documents. Ensure validation works correctly when no job description is provided.
