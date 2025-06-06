@@ -1,0 +1,159 @@
+/* Sun Interview Qualifier - Modern UI/UX CSS (Inspired by 21st.dev) */
+:root {
+  --primary-color: #4361ee;
+  --secondary-color: #3a0ca3;
+  --accent-color: #4cc9f0;
+  --background-color: #f8f9fa;
+  --card-background: #ffffff;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+}
+
+body, .stApp {
+  background: var(--background-color) !important;
+  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+}
+
+/* Card styling */
+.card {
+  background: var(--card-background);
+  border-radius: 1.25rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 2rem 2.5rem;
+  margin-bottom: 2.5rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.card:hover {
+  box-shadow: 0 4px 24px rgba(67,97,238,0.12);
+  transform: translateY(-2px);
+}
+
+/* Header styling */
+.banner {
+  background: linear-gradient(90deg, #4361ee 0%, #4cc9f0 100%);
+  color: #fff;
+  padding: 2rem 2.5rem;
+  border-radius: 1.5rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.banner-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+  letter-spacing: -1px;
+}
+.banner-desc {
+  font-size: 1.2rem;
+  font-weight: 400;
+  opacity: 0.97;
+}
+
+/* Button styling */
+.stButton > button {
+  background: linear-gradient(90deg, #4361ee 0%, #4cc9f0 100%);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 1rem 2.5rem;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s, background 0.2s;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.stButton > button:disabled {
+  background: #f3f4f6;
+  color: #bbb;
+  box-shadow: none;
+}
+.stButton > button:hover {
+  background: #3a0ca3;
+}
+
+/* Input field styling */
+.stTextInput > div > div > input,
+.stTextArea textarea {
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid var(--primary-color);
+  background: #f9fafb;
+  padding: 0.75rem;
+}
+
+/* File uploader styling */
+.stFileUploader > div {
+  border-radius: 6px;
+  border: 2px dashed #e0e0e0;
+  padding: 1rem;
+  background: #f9fafb;
+}
+.stFileUploader label {
+  font-size: 1rem;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Table styling */
+.dataframe {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.dataframe th {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+.dataframe td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+.dataframe tr:last-child td {
+  border-bottom: none;
+}
+
+/* Section title */
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  letter-spacing: -0.5px;
+}
+
+/* Download button */
+.stDownloadButton button {
+  background: var(--accent-color);
+  color: #fff;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  margin-top: 1rem;
+}
+.stDownloadButton button:hover {
+  background: var(--secondary-color);
+}
+
+/* Alerts and info */
+.stAlert, .stInfo {
+  border-radius: 0.7rem;
+  font-size: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 900px) {
+  .banner, .card {
+    padding: 1.2rem 1rem;
+  }
+  .banner-title {
+    font-size: 2rem;
+  }
+} 

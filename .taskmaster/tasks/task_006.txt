@@ -1,6 +1,6 @@
 # Task ID: 6
 # Title: Implement Results Table Display
-# Status: pending
+# Status: done
 # Dependencies: 5
 # Priority: high
 # Description: Create a sortable table to display analysis results with all required columns.

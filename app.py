@@ -7,82 +7,54 @@ from dotenv import load_dotenv
 import time
 import threading
 import pandas as pd
+import logging
+import datetime
 
-# --- Custom CSS for styling ---
-def apply_custom_css():
-    st.markdown("""
-    <style>
-    .stApp {
-        max-width: 900px;
-        margin: 0 auto;
-        background: #f8fafc;
-    }
-    .banner {
-        background: linear-gradient(90deg, #fbbf24 0%, #f59e42 100%);
-        color: #fff;
-        padding: 1.5rem 2rem;
-        border-radius: 1rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    .banner-title {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.2rem;
-    }
-    .banner-desc {
-        font-size: 1.1rem;
-        font-weight: 400;
-        opacity: 0.95;
-    }
-    .card {
-        background: #fff;
-        border-radius: 1rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        padding: 1.5rem 2rem;
-        margin-bottom: 2rem;
-    }
-    .analyze-btn {
-        background: linear-gradient(90deg, #fbbf24 0%, #f59e42 100%);
-        color: #fff;
-        font-weight: 600;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 0.75rem 2rem;
-        font-size: 1.1rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        transition: box-shadow 0.2s;
-    }
-    .analyze-btn:disabled {
-        background: #f3f4f6;
-        color: #bbb;
-        box-shadow: none;
-    }
-    .result-table {
-        margin-top: 2rem;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# --- Load Custom CSS from styles.css ---
+def load_custom_css():
+    try:
+        with open('styles.css', 'r') as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except Exception as e:
+        st.warning(f'Could not load custom CSS: {e}')
 
-apply_custom_css()
+load_custom_css()
+
+# --- Logging Setup ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
+
+# --- Centralized Error Display Helper ---
+def show_error(message, suggestion=None):
+    st.error(message)
+    if suggestion:
+        st.info(suggestion)
+
+# --- File Validation Helper ---
+def is_valid_pdf(file):
+    if file is None:
+        return False
+    if hasattr(file, 'type') and file.type != 'application/pdf':
+        return False
+    if not file.name.lower().endswith('.pdf'):
+        return False
+    return True
 
 # --- Banner/Header ---
 st.markdown(
     '''<div class="banner">
         <div>
             <div class="banner-title">Sun Interview Qualifier</div>
-            <div class="banner-desc">AI-powered resume analyzer for HR recruiters. Upload resumes, provide a job description, and get instant candidate analysis!</div>
+            <div class="banner-desc">AI-powered resume analyzer for HR recruiters.<br>Upload resumes, provide a job description, and get instant candidate analysis!<br><span style="font-size:1rem;opacity:0.9;">Modern UI/UX inspired by 21st.dev</span></div>
         </div>
-        <div style="font-size:2.5rem;opacity:0.7;">🌞</div>
+        <div style="font-size:3rem;opacity:0.9;">🌞</div>
+        <!-- Future navigation or links can go here -->
     </div>''', unsafe_allow_html=True
 )
 
 # --- Job Description Input Card ---
 st.markdown('<div class="card">', unsafe_allow_html=True)
-st.subheader("Job Description Input")
+st.markdown('<div class="section-title">Job Description Input</div>', unsafe_allow_html=True)
 jd_tabs = st.tabs(["Paste Text", "Upload PDF"])
 job_description = ""
 
@@ -94,13 +66,20 @@ with jd_tabs[0]:
 with jd_tabs[1]:
     jd_pdf = st.file_uploader("Upload a Job Description PDF", type=["pdf"], key="jd_pdf", accept_multiple_files=False, help="Upload a PDF file containing the job description.")
     if jd_pdf:
-        reader = PdfReader(jd_pdf)
-        jd_pdf_text = ""
-        for page in reader.pages:
-            jd_pdf_text += page.extract_text() or ""
-        job_description = jd_pdf_text
-        if jd_pdf_text:
-            st.success("PDF extracted successfully.")
+        if not is_valid_pdf(jd_pdf):
+            show_error("Invalid file type. Please upload a PDF file.")
+        else:
+            try:
+                reader = PdfReader(jd_pdf)
+                jd_pdf_text = ""
+                for page in reader.pages:
+                    jd_pdf_text += page.extract_text() or ""
+                job_description = jd_pdf_text
+                if jd_pdf_text:
+                    st.success("PDF extracted successfully.")
+            except Exception as e:
+                logger.error(f"Error extracting text from job description PDF: {e}")
+                show_error("Failed to extract text from the uploaded PDF.", suggestion="Please check the file or try another PDF.")
 
 # Store in session state
 if job_description:
@@ -108,16 +87,12 @@ if job_description:
 
 # Validation and Preview
 if not job_description:
-    st.warning("Please provide a job description (paste text or upload PDF).", icon="⚠️")
-else:
-    st.markdown('<div style="margin-top:1rem;"></div>', unsafe_allow_html=True)
-    st.text_area("Extracted/Entered Job Description", job_description, height=200, key="jd_preview")
-
+    show_error("Please provide a job description (paste text or upload PDF).")
 st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Resume Upload Card ---
 st.markdown('<div class="card">', unsafe_allow_html=True)
-st.subheader("Resume Upload")
+st.markdown('<div class="section-title">Resume Upload</div>', unsafe_allow_html=True)
 uploaded_files = st.file_uploader(
     "Upload one or more PDF resumes",
     type=["pdf"],
@@ -126,20 +101,69 @@ uploaded_files = st.file_uploader(
     help="Upload PDF resumes for analysis."
 )
 
+# --- Session Management ---
+def initialize_session_state():
+    if 'uploaded_resumes' not in st.session_state:
+        st.session_state.uploaded_resumes = []
+    if 'job_description' not in st.session_state:
+        st.session_state.job_description = ""
+    if 'analysis_results' not in st.session_state:
+        st.session_state.analysis_results = []
+    if 'last_active' not in st.session_state:
+        st.session_state.last_active = datetime.datetime.now()
+    if 'step' not in st.session_state:
+        st.session_state.step = 1  # For future multi-step workflow
+
+# Call at the top of the app
+initialize_session_state()
+
+# --- Session Timeout (30 min inactivity) ---
+now = datetime.datetime.now()
+if (now - st.session_state.last_active).total_seconds() > 1800:
+    st.session_state.uploaded_resumes = []
+    st.session_state.job_description = ""
+    st.session_state.analysis_results = []
+    st.session_state.step = 1
+    st.session_state.last_active = now
+    st.info("Session expired due to inactivity. All data has been cleared.")
+else:
+    st.session_state.last_active = now
+
+# --- Clear Session Button ---
+with st.sidebar:
+    if st.button("Clear Session", help="Reset all uploaded files, job description, and results."):
+        st.session_state.uploaded_resumes = []
+        st.session_state.job_description = ""
+        st.session_state.analysis_results = []
+        st.session_state.step = 1
+        st.session_state.last_active = datetime.datetime.now()
+        st.success("Session cleared!")
+
 resume_texts = []
 resume_names = []
 if uploaded_files:
+    st.session_state.uploaded_resumes = uploaded_files
     for uploaded_file in uploaded_files:
+        if not is_valid_pdf(uploaded_file):
+            show_error(f"{uploaded_file.name} is not a valid PDF file.", suggestion="Please upload only PDF resumes.")
+            continue
         st.write(f"**{uploaded_file.name}**")
-        reader = PdfReader(uploaded_file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text() or ""
-        resume_texts.append(text)
-        resume_names.append(uploaded_file.name)
-        st.text_area("Extracted Text", text, height=200, key=f"resume_{uploaded_file.name}")
-
-st.markdown('</div>', unsafe_allow_html=True)
+        try:
+            reader = PdfReader(uploaded_file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text() or ""
+            resume_texts.append(text)
+            resume_names.append(uploaded_file.name)
+        except Exception as e:
+            logger.error(f"Error extracting text from {uploaded_file.name}: {e}")
+            show_error(f"Failed to extract text from {uploaded_file.name}.", suggestion="Please check the file or try another PDF.")
+else:
+    # If no new uploads, try to restore from session
+    if st.session_state.uploaded_resumes:
+        for uploaded_file in st.session_state.uploaded_resumes:
+            resume_names.append(uploaded_file.name)
+            # Can't re-extract text from file-like object after upload, so skip text
 
 # --- Analysis Trigger and Progress Bar ---
 load_dotenv()
@@ -175,8 +199,11 @@ def analyze_resume(resume_text, job_description):
         if json_match:
             return json.loads(json_match.group(0))
         else:
+            show_error("Could not parse response from the AI.", suggestion="Please try again or check the API response format.")
             return {"error": "Could not parse response"}
     except Exception as e:
+        logger.error(f"Anthropic API error: {e}")
+        show_error("An error occurred while analyzing the resume.", suggestion="Please check your API key, network connection, or try again later.")
         return {"error": str(e)}
 
 # --- Stylish Analyze Button and Progress ---
@@ -185,7 +212,7 @@ progress_placeholder = st.empty()
 results = []
 
 if st.button('Analyze Resumes', key='analyze_btn', disabled=not can_analyze, help="Analyze all uploaded resumes against the job description.",
-             args=None):
+             args=None, type="primary"):
     with st.spinner('Analyzing resumes... This may take a minute.'):
         for i, (resume_text, resume_name) in enumerate(zip(resume_texts, resume_names)):
             progress = int((i / len(resume_texts)) * 100)
@@ -198,13 +225,15 @@ if st.button('Analyze Resumes', key='analyze_btn', disabled=not can_analyze, hel
 
 # --- Results Section ---
 st.markdown('<div class="card">', unsafe_allow_html=True)
-st.subheader("Candidate Analysis Results")
+st.markdown('<div class="section-title">Candidate Analysis Results</div>', unsafe_allow_html=True)
 
 analysis_results = st.session_state.get('analysis_results', [])
+
 def display_results_table(results):
     if not results:
         st.info("No analysis results to display.")
         return
+    # Sort results by rank (highest first)
     sorted_results = sorted(results, key=lambda x: x.get('rank', 0), reverse=True)
     df = pd.DataFrame([
         {
@@ -212,10 +241,43 @@ def display_results_table(results):
             'Resume Name': r.get('resume_name', 'Unknown'),
             'Candidate Name': r.get('candidate_name', 'Unknown'),
             'Analysis': r.get('analysis', 'No analysis available'),
-            'Rank': r.get('rank', 0)
+            'Raw Score': r.get('rank', 0)  # Keep the original score for reference
         } for i, r in enumerate(sorted_results)
     ])
-    st.dataframe(df, use_container_width=True, height=400)
+    # Assign new ranks: 1 (best) to N (worst)
+    df['Rank'] = range(1, len(df) + 1)
+    # Move 'Rank' column before 'Raw Score'
+    cols = df.columns.tolist()
+    cols.insert(cols.index('Raw Score'), cols.pop(cols.index('Rank')))
+    df = df[cols]
+    # Add a badge for top 3 candidates
+    def badge(rank):
+        if rank == 1:
+            return '🥇'
+        elif rank == 2:
+            return '🥈'
+        elif rank == 3:
+            return '🥉'
+        else:
+            return ''
+    df['Top'] = df['Rank'].apply(badge)
+    # Move 'Top' to the front
+    cols = ['Top'] + [c for c in df.columns if c != 'Top']
+    df = df[cols]
+    # Conditional formatting: highlight top 3 candidates
+    def highlight_top(row):
+        if row['Rank'] <= 3:
+            return ['background-color: #ffe082'] * len(row)
+        return [''] * len(row)
+    styled_df = df.style.apply(highlight_top, axis=1)
+    # Display the styled table, ensure scrollability on small screens
+    st.markdown('<div style="overflow-x:auto;">', unsafe_allow_html=True)
+    try:
+        st.dataframe(styled_df, use_container_width=True, height=400)
+    except Exception:
+        st.dataframe(df, use_container_width=True, height=400)
+    st.markdown('</div>', unsafe_allow_html=True)
+    # CSV download
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="Download Results as CSV",
@@ -224,6 +286,6 @@ def display_results_table(results):
         mime="text/csv",
         key="download_csv_btn"
     )
+    st.caption("Top 3 candidates are highlighted and marked with badges.")
 
-display_results_table(analysis_results)
-st.markdown('</div>', unsafe_allow_html=True) 
+display_results_table(analysis_results) 

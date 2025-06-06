@@ -1,0 +1,317 @@
+# Task ID: 11
+# Title: Enhance UI/UX with Modern Design Elements
+# Status: pending
+# Dependencies: 8, 9, 6
+# Priority: medium
+# Description: Improve the visual appeal and user experience of the Sun Interview Qualifier app by implementing modern design elements inspired by 21st.dev, creating a polished, professional SaaS dashboard appearance.
+# Details:
+1. Review 21st.dev design patterns and identify key elements to incorporate
+2. Create a custom CSS file with enhanced styling:
+```css
+/* Main theme colors */
+:root {
+  --primary-color: #4361ee;
+  --secondary-color: #3a0ca3;
+  --accent-color: #4cc9f0;
+  --background-color: #f8f9fa;
+  --card-background: #ffffff;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+}
+
+/* Global styling improvements */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: var(--background-color);
+}
+
+/* Card styling */
+.card {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Button styling */
+.stButton > button {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 500;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.stButton > button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Input field styling */
+.stTextInput > div > div > input {
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  padding: 0.75rem;
+}
+
+/* File uploader styling */
+.stFileUploader > div {
+  border-radius: 6px;
+  border: 2px dashed #e0e0e0;
+  padding: 1rem;
+}
+
+/* Table styling */
+.dataframe {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dataframe th {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.dataframe td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dataframe tr:last-child td {
+  border-bottom: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-container {
+    padding: 1rem;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+}
+```
+
+3. Implement the custom CSS in Streamlit:
+```python
+def load_custom_css():
+    with open('styles.css', 'r') as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+```
+
+4. Add custom HTML components for enhanced layout:
+```python
+def create_header():
+    st.markdown("""
+    <div class="header">
+        <h1>Sun Interview Qualifier</h1>
+        <p class="subtitle">AI-powered resume screening and candidate ranking</p>
+    </div>
+    """, unsafe_allow_html=True)
+```
+
+5. Implement card-based layout for different sections:
+```python
+def create_section(title, content_function):
+    st.markdown(f'<div class="card"><h3>{title}</h3>', unsafe_allow_html=True)
+    content_function()
+    st.markdown('</div>', unsafe_allow_html=True)
+```
+
+6. Add subtle animations for user interactions:
+```python
+def add_animation_js():
+    st.markdown("""
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animation classes to elements
+        const buttons = document.querySelectorAll('.stButton > button');
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                this.classList.add('button-clicked');
+                setTimeout(() => {
+                    this.classList.remove('button-clicked');
+                }, 300);
+            });
+        });
+    });
+    </script>
+    """, unsafe_allow_html=True)
+```
+
+7. Improve the results display with visual indicators:
+```python
+def display_enhanced_results(results):
+    # Create a more visually appealing results table
+    for i, result in enumerate(results):
+        score = result.get('match_score', 0)
+        color = "#4CC9F0" if score >= 80 else "#4361EE" if score >= 60 else "#6C757D"
+        
+        st.markdown(f"""
+        <div class="result-card" style="border-left: 4px solid {color};">
+            <h4>{result.get('name', 'Candidate')} - {score}%</h4>
+            <p><strong>Key strengths:</strong> {result.get('key_strengths', 'N/A')}</p>
+            <p><strong>Missing skills:</strong> {result.get('missing_skills', 'N/A')}</p>
+        </div>
+        """, unsafe_allow_html=True)
+```
+
+8. Implement responsive design considerations:
+```python
+def create_responsive_layout():
+    # Check viewport width using custom JS
+    st.markdown("""
+    <script>
+    const viewportWidth = window.innerWidth;
+    if (viewportWidth < 768) {
+        document.body.classList.add('mobile-view');
+    }
+    </script>
+    """, unsafe_allow_html=True)
+    
+    # Adjust column layout based on viewport
+    if 'mobile_view' in st.session_state:
+        # Single column layout for mobile
+        col1 = st.container()
+    else:
+        # Multi-column layout for desktop
+        col1, col2 = st.columns([2, 1])
+```
+
+9. Refactor the main app layout to incorporate all UI enhancements:
+```python
+def main():
+    load_custom_css()
+    create_header()
+    
+    # Create responsive layout
+    create_responsive_layout()
+    
+    with st.container():
+        create_section("Upload Resumes", resume_upload_section)
+        
+        create_section("Job Description", job_description_section)
+        
+        if st.button("Analyze Resumes", key="analyze_button"):
+            with st.spinner("Analyzing resumes..."):
+                # Analysis logic here
+                pass
+    
+    if 'analysis_results' in st.session_state and st.session_state.analysis_results:
+        create_section("Results", lambda: display_enhanced_results(st.session_state.analysis_results))
+    
+    add_animation_js()
+```
+
+10. Ensure all UI components maintain consistent styling and branding throughout the application
+
+# Test Strategy:
+1. Visual Inspection Testing:
+   - Compare the application before and after UI enhancements
+   - Verify that all UI elements match the design specifications
+   - Check that colors, spacing, and typography are consistent throughout
+
+2. Responsive Design Testing:
+   - Test the application on multiple screen sizes (desktop, tablet, mobile)
+   - Verify that the layout adjusts appropriately on different devices
+   - Check that all functionality remains accessible on smaller screens
+   - Use Chrome DevTools device emulation to test various viewport sizes
+
+3. Cross-Browser Compatibility:
+   - Test the enhanced UI in Chrome, Firefox, Safari, and Edge
+   - Verify that all styling and animations work consistently across browsers
+   - Check for any browser-specific rendering issues
+
+4. Animation and Transition Testing:
+   - Verify that all animations are subtle and enhance rather than distract from the UX
+   - Test that transitions are smooth and perform well on lower-end devices
+   - Ensure animations don't interfere with functionality
+
+5. Accessibility Testing:
+   - Verify that the enhanced UI maintains or improves accessibility
+   - Check color contrast ratios meet WCAG standards
+   - Test keyboard navigation with the new UI elements
+   - Verify screen reader compatibility
+
+6. Performance Testing:
+   - Measure page load time before and after UI enhancements
+   - Verify that animations and styling don't cause performance issues
+   - Check for any layout shifts or rendering problems
+
+7. User Feedback:
+   - Conduct a small user test with 3-5 users
+   - Gather feedback on the visual appeal and usability of the new design
+   - Make adjustments based on user feedback
+
+8. Functional Regression Testing:
+   - Verify that all existing functionality still works with the new UI
+   - Test the resume upload, job description input, and analysis features
+   - Ensure that the results display correctly with the enhanced styling
+
+# Subtasks:
+## 1. Implement Custom CSS Styling Framework [pending]
+### Dependencies: None
+### Description: Create and integrate a custom CSS file with modern design elements inspired by 21st.dev, including color variables, card styling, and basic component styling.
+### Details:
+1. Create a styles.css file with the provided CSS code
+2. Implement the load_custom_css() function to inject the CSS into Streamlit
+3. Define the color palette variables in :root
+4. Implement basic styling for cards, containers, and global elements
+5. Test the CSS integration with the existing app components
+
+## 2. Redesign Header and Navigation Components [pending]
+### Dependencies: 11.1
+### Description: Create enhanced header and navigation elements with modern styling, including app title, subtitle, and navigation options.
+### Details:
+1. Implement the create_header() function with HTML/CSS for a professional header
+2. Add a subtle gradient or accent element to the header
+3. Create navigation tabs or sidebar with consistent styling
+4. Ensure the header is responsive and collapses appropriately on mobile
+5. Add the app logo or icon if available
+
+## 3. Implement Card-Based Section Layout [pending]
+### Dependencies: 11.1
+### Description: Refactor the app layout to use card-based sections for different functional areas, creating a dashboard-like appearance.
+### Details:
+1. Implement the create_section() function to wrap content in styled cards
+2. Apply card styling to main functional areas: resume upload, job description, and results
+3. Add appropriate spacing and margins between cards
+4. Ensure cards have consistent styling with subtle hover effects
+5. Implement card headers with appropriate typography
+
+## 4. Enhance Form Elements and Interactive Components [pending]
+### Dependencies: 11.1
+### Description: Improve the styling and interaction design of buttons, input fields, file uploaders, and other interactive elements.
+### Details:
+1. Apply custom styling to buttons with hover and active states
+2. Enhance input field styling with focus states
+3. Improve file uploader appearance with drag-and-drop styling
+4. Style dropdown menus and selection components
+5. Add subtle transition effects to interactive elements
+
+## 5. Implement Responsive Design and Results Display [pending]
+### Dependencies: 11.1, 11.2, 11.3, 11.4
+### Description: Create a responsive layout that adapts to different screen sizes and enhance the results display with visual indicators.
+### Details:
+1. Implement the create_responsive_layout() function to adjust columns based on viewport
+2. Create the display_enhanced_results() function with visual score indicators
+3. Add color-coded elements based on match scores
+4. Implement media queries for mobile responsiveness
+5. Test and refine the main app layout to incorporate all UI enhancements
+
