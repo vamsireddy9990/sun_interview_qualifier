@@ -1,6 +1,6 @@
 # Task ID: 4
 # Title: Implement Anthropic API Integration
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: high
 # Description: Set up the connection to the Anthropic API and create functions to analyze resumes against job descriptions.

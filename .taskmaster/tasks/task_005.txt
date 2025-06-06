@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Implement Analysis Trigger and Loading Indicator
-# Status: pending
+# Status: done
 # Dependencies: 2, 3, 4
 # Priority: medium
 # Description: Create the 'Analyze Resumes' button and implement a loading indicator during the analysis process.

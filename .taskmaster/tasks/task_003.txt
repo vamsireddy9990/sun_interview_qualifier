@@ -1,6 +1,6 @@
 # Task ID: 3
 # Title: Implement Job Description Input
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: high
 # Description: Create UI components for inputting job descriptions either as text or by uploading a PDF file.
